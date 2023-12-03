@@ -2,4 +2,4 @@
 
 set -xe
 
-cc -o main main.c
+g++ -o main main.cpp
