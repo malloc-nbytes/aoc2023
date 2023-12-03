@@ -53,94 +53,125 @@ int find_sub(char **start, char **end) {
     *end = it;
     ++it;
   }
-
   it = *start;
-  printf("got: ");
-  while (it <= *end) putchar(*it++);
-  putchar('\n');
 
-  return -1;
+  char buff[32];
+  memset(buff, '\0', 32);
+  size_t len = 0;
+  while (it <= *end) {
+    // printf("    %c\n", *it);
+    buff[len++] = *it;
+    *it = '.';
+    ++it;
+  }
+
+  return atoi(buff);
 }
 
-void search_symbol(struct Schematic *sch, size_t row, size_t col) {
+int search_symbol(struct Schematic *sch, size_t row, size_t col) {
+  int res = 0;
+
   // Check left
   if (col > 0 && isdigit(SCH_AT(sch, row, col-1))) {
     char *start = &SCH_AT(sch, row, col-1);
     char *end = start;
-    find_sub(&start, &end);
+    int r = find_sub(&start, &end);
+    printf("  found %d\n", r);
+    printf("  adding %d\n", r);
+    res += r;
   }
 
   // Check right
   if (col < sch->cols-1 && isdigit(SCH_AT(sch, row, col+1))) {
     char *start = &SCH_AT(sch, row, col+1);
     char *end = start;
-    find_sub(&start, &end);
+    int r = find_sub(&start, &end);
+    printf("  found %d\n", r);
+    printf("  adding %d\n", r);
+    res += r;
   }
 
   // Check up
   if (row > 0 && isdigit(SCH_AT(sch, row-1, col))) {
     char *start = &SCH_AT(sch, row-1, col);
     char *end = start;
-    find_sub(&start, &end);
+    int r = find_sub(&start, &end);
+    printf("  found %d\n", r);
+    printf("  adding %d\n", r);
+    res += r;
   }
 
   // Check down
   if (row < sch->rows-1 && isdigit(SCH_AT(sch, row+1, col))) {
     char *start = &SCH_AT(sch, row+1, col);
     char *end = start;
-    find_sub(&start, &end);
+    int r = find_sub(&start, &end);
+    printf("  found %d\n", r);
+    printf("  adding %d\n", r);
+    res += r;
   }
 
-  // check up-left
+  // Check up-left
   if (row > 0 && col > 0 && isdigit(SCH_AT(sch, row-1, col-1))) {
     char *start = &SCH_AT(sch, row-1, col-1);
     char *end = start;
-    find_sub(&start, &end);
+    int r = find_sub(&start, &end);
+    printf("  found %d\n", r);
+    printf("  adding %d\n", r);
+    res += r;
   }
 
-  // check up-right
+  // Check up-right
   if (row > 0 && col < sch->cols-1 && isdigit(SCH_AT(sch, row-1, col+1))) {
     char *start = &SCH_AT(sch, row-1, col+1);
     char *end = start;
-    find_sub(&start, &end);
+    int r = find_sub(&start, &end);
+    printf("  found %d\n", r);
+    printf("  adding %d\n", r);
+    res += r;
   }
 
-  // check down-left
+  // Check down-left
   if (row < sch->rows-1 && col > 0 && isdigit(SCH_AT(sch, row+1, col-1))) {
     char *start = &SCH_AT(sch, row+1, col-1);
     char *end = start;
-    find_sub(&start, &end);
+    int r = find_sub(&start, &end);
+    printf("  found %d\n", r);
+    printf("  adding %d\n", r);
+    res += r;
   }
 
-  // check down-right
+  // Check down-right
   if (row < sch->rows-1 && col < sch->cols-1 && isdigit(SCH_AT(sch, row+1, col+1))) {
     char *start = &SCH_AT(sch, row+1, col+1);
     char *end = start;
-    find_sub(&start, &end);
+    int r = find_sub(&start, &end);
+    printf("  found %d\n", r);
+    printf("  adding %d\n", r);
+    res += r;
   }
+
+  return res;
 }
 
 int sum_part_nums(struct Schematic *sch) {
-  char buff[32];
-  size_t n = sizeof(buff)/sizeof(buff[0]);
-  size_t len = 0;
-  memset(buff, '\0', n);
+  int sum = 0;
   for (size_t i = 0; i < sch->rows; ++i) {
     for (size_t j = 0; j < sch->cols; ++j) {
       char c = SCH_AT(sch, i, j);
-      if (c == NOT_PART || isdigit(c)) continue;
-      printf("c: %c\n", c);
-
+      if (c == NOT_PART || isdigit(c) || c == '\n') continue;
       // Found symbol
-      search_symbol(sch, i, j);
+      printf("%c\n", c);
+      sum += search_symbol(sch, i, j);
     }
-    memset(buff, '\0', n);
-    len = 0;
   }
+  return sum;
 }
 
 int main(void) {
   struct Schematic sch = schematic_create(file_to_str(UTILS_FILEPATH));
   int s = sum_part_nums(&sch);
+  printf("%d\n", s);
+  // schematic_dump(&sch);
   return 0;
 }
