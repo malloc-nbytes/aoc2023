@@ -48,8 +48,8 @@ struct Matrix {
 };
 
 int search_symbol(Matrix& mat, size_t row, size_t col) {
-  std::unordered_set<char*> visited;
-
+  std::unordered_set<char *> visited;
+  int count = 0;
   auto build_num = [&](char **st, char **en) -> int {
     char *it = *st;
     while (it && isdigit(*it)) {
@@ -62,40 +62,19 @@ int search_symbol(Matrix& mat, size_t row, size_t col) {
       ++it;
     }
 
-    // Check if we have already visited this number.
-    if (visited.find(*st) != visited.end()) return 1;
+    if (visited.find(*st) != visited.end()) {
+      --count;
+      return 1;
+    }
     visited.insert(*st);
 
-    std::string buff(*st, *en+1);
+    std::string buff(*st, *en + 1);
+    std::printf("  %s\n", buff.c_str());
+
     return std::stoi(buff);
   };
 
-  int count = 0;
   int res = 1;
-
-  // Check up left.
-  if (row > 0 && col > 0 && isdigit(mat.data[row-1][col-1])) {
-    char *st = &mat.data[row-1][col-1];
-    char *en = &mat.data[row-1][col-1];
-    res *= build_num(&st, &en);
-    ++count;
-  }
-
-  // Check up.
-  if (row > 0 && isdigit(mat.data[row-1][col])) {
-    char *st = &mat.data[row-1][col];
-    char *en = &mat.data[row-1][col];
-    res *= build_num(&st, &en);
-    ++count;
-  }
-
-  // Check up right.
-  if (row > 0 && col < mat.cols-1 && isdigit(mat.data[row-1][col+1])) {
-    char *st = &mat.data[row-1][col+1];
-    char *en = &mat.data[row-1][col+1];
-    res *= build_num(&st, &en);
-    ++count;
-  }
 
   // Check left.
   if (col > 0 && isdigit(mat.data[row][col-1])) {
@@ -104,7 +83,6 @@ int search_symbol(Matrix& mat, size_t row, size_t col) {
     res *= build_num(&st, &en);
     ++count;
   }
-
   // Check right.
   if (col < mat.cols-1 && isdigit(mat.data[row][col+1])) {
     char *st = &mat.data[row][col+1];
@@ -112,15 +90,13 @@ int search_symbol(Matrix& mat, size_t row, size_t col) {
     res *= build_num(&st, &en);
     ++count;
   }
-
-  // Check down left.
-  if (row < mat.rows-1 && col > 0 && isdigit(mat.data[row+1][col-1])) {
-    char *st = &mat.data[row+1][col-1];
-    char *en = &mat.data[row+1][col-1];
+  // Check up.
+  if (row > 0 && isdigit(mat.data[row-1][col])) {
+    char *st = &mat.data[row-1][col];
+    char *en = &mat.data[row-1][col];
     res *= build_num(&st, &en);
     ++count;
   }
-
   // Check down.
   if (row < mat.rows-1 && isdigit(mat.data[row+1][col])) {
     char *st = &mat.data[row+1][col];
@@ -128,7 +104,27 @@ int search_symbol(Matrix& mat, size_t row, size_t col) {
     res *= build_num(&st, &en);
     ++count;
   }
-
+  // Check up left.
+  if (row > 0 && col > 0 && isdigit(mat.data[row-1][col-1])) {
+    char *st = &mat.data[row-1][col-1];
+    char *en = &mat.data[row-1][col-1];
+    res *= build_num(&st, &en);
+    ++count;
+  }
+  // Check up right.
+  if (row > 0 && col < mat.cols-1 && isdigit(mat.data[row-1][col+1])) {
+    char *st = &mat.data[row-1][col+1];
+    char *en = &mat.data[row-1][col+1];
+    res *= build_num(&st, &en);
+    ++count;
+  }
+  // Check down left.
+  if (row < mat.rows-1 && col > 0 && isdigit(mat.data[row+1][col-1])) {
+    char *st = &mat.data[row+1][col-1];
+    char *en = &mat.data[row+1][col-1];
+    res *= build_num(&st, &en);
+    ++count;
+  }
   // Check down right.
   if (row < mat.rows-1 && col < mat.cols-1 && isdigit(mat.data[row+1][col+1])) {
     char *st = &mat.data[row+1][col+1];
@@ -136,8 +132,9 @@ int search_symbol(Matrix& mat, size_t row, size_t col) {
     res *= build_num(&st, &en);
     ++count;
   }
+  
+  visited.clear();
 
-  std::printf("  count: %d\n", count);
   return count == 2 ? res : 0;
 }
 
@@ -147,7 +144,6 @@ int find_num_parts(Matrix& mat) {
     for (size_t j = 0; j < mat.cols; ++j) {
       char c = mat.data[i][j];
       if (c != '*') continue;
-      std::printf("Symbol: %c\n", c);
       sum += search_symbol(mat, i, j);
     }
   }
@@ -157,8 +153,9 @@ int find_num_parts(Matrix& mat) {
 
 int main(void) {
   Matrix mat(std::string(FILEPATH));
-  int s = find_num_parts(mat);
-  std::printf("sum: %d\n", s);
   mat.print();
+  int s = find_num_parts(mat);
+  mat.print();
+  std::printf("sum: %d\n", s);
   return 0;
 }
