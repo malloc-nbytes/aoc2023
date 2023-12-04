@@ -89,10 +89,10 @@ int iter_cards(std::vector<Card>& cards) {
 }
 
 int main(void) {
-  std::vector<std::string> str = file_to_vec(FILEPATH);
+  std::vector<std::string> lines = file_to_vec(FILEPATH);
 
   std::vector<Card> cards;
-  for (auto& line : str) {
+  for (auto& line : lines) {
     size_t pos = line.find(':');
     line.erase(pos, 1);
     cards.push_back(make_card(line));
