@@ -99,7 +99,8 @@ fn order_hands(hands: &mut Vec<Hand>) {
             // Compare cards when kinds are equal.
             std::cmp::Ordering::Equal => {
                 for (card_a, card_b) in a.cards.iter().zip(b.cards.iter()) {
-                    match card_b.cmp(card_a) {
+                    let (ca, cb) = (translate_card(*card_a), translate_card(*card_b));
+                    match ca.cmp(&cb) {
                         std::cmp::Ordering::Equal => continue,
                         other => return other,
                     }
@@ -114,9 +115,6 @@ fn order_hands(hands: &mut Vec<Hand>) {
     // Determine the rank of each hand.
     let mut rank = 1u32;
     for i in 0..hands.len() {
-        // if i > 0 && hands[i].kind != hands[i - 1].kind {
-        //     rank += 1;
-        // }
         hands[i].rank = rank;
         rank += 1;
     }
@@ -130,9 +128,9 @@ fn main() {
     order_hands(&mut hands);
 
     let mut s = 0u32;
-    for i in 0..hands.len() {
-        s += hands[i].rank * hands[i].bet;
-        println!("hand {i}: cards: {:?}, kind: {:?}, rank: {}", hands[i].cards, hands[i].kind, hands[i].rank);
+    for hand in hands {
+        s += hand.rank*hand.bet;
+        println!("cards: {:?}, kind {:?}, rank: {}", hand.cards, hand.kind, hand.rank);
     }
 
     println!("s: {s}")
