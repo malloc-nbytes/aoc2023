@@ -2,18 +2,22 @@ use std::fs;
 
 const FILEPATH: &str = "./input.txt";
 
-const HIGHCARD: u32 = 1;
-const ONEPAIR: u32 = 2;
-const TWOPAIR: u32 = 3;
-const THREEKIND: u32 = 4;
-const FULLHOUSE: u32 = 5;
-const FOURKIND: u32 = 6;
-const FIVEKIND: u32 = 7;
+#[derive(Debug, PartialEq, PartialOrd, Eq, Ord)]
+enum Kind {
+    None = 0,
+    HighCard = 1,
+    OnePair = 2,
+    TwoPair = 3,
+    ThreeKind = 4,
+    FullHouse = 5,
+    FourKind = 6,
+    FiveKind = 7,
+}
 
-#[allow(dead_code)]
 struct Hand {
     cards: Vec<char>,
     bet: u32,
+    kind: Kind,
     rank: u32,
 }
 
@@ -40,14 +44,14 @@ fn create_hands(data: String) -> Vec<Hand> {
             let parts: Vec<&str> = line.split_whitespace().collect();
             let cards = parts[0].chars().collect::<Vec<char>>();
             let bet = parts[1].parse().unwrap();
-            Hand { cards, bet, rank: 0 }
+            Hand { cards, bet, kind: Kind::None, rank: 0 }
         })
         .collect::<Vec<_>>()
 }
 
 fn order_hands(hands: &mut Vec<Hand>) {
 
-    fn determine_rank(hand: &mut Hand) {
+    fn determine_kind(hand: &mut Hand) {
         const MAX_CARDS: usize = 13;
 
         // Number of each individual card.
@@ -68,31 +72,31 @@ fn order_hands(hands: &mut Vec<Hand>) {
             }
         }
 
-        // Determine the ranking for the hand.
+        // Determine the kind for the hand.
         if counts[4] == 1 {
-            hand.rank = FIVEKIND;
+            hand.kind = Kind::FiveKind;
         } else if counts[3] == 1 {
-            hand.rank = FOURKIND;
+            hand.kind = Kind::FourKind;
         } else if counts[2] == 1 && counts[1] == 1 {
-            hand.rank = FULLHOUSE;
+            hand.kind = Kind::FullHouse;
         } else if counts[2] == 1 {
-            hand.rank = THREEKIND;
+            hand.kind = Kind::ThreeKind;
         } else if counts[1] == 2 {
-            hand.rank = TWOPAIR;
+            hand.kind = Kind::TwoPair;
         } else if counts[1] == 1 {
-            hand.rank = ONEPAIR;
+            hand.kind = Kind::OnePair;
         } else {
-            hand.rank = HIGHCARD;
+            hand.kind = Kind::HighCard;
         }
     }
 
     for hand in &mut *hands {
-        determine_rank(hand);
+        determine_kind(hand);
     }
 
     hands.sort_by(|a, b| {
-        match a.rank.cmp(&b.rank) {
-            // Compare cards when ranks are equal.
+        match a.kind.cmp(&b.kind) {
+            // Compare cards when kinds are equal.
             std::cmp::Ordering::Equal => {
                 for (card_a, card_b) in a.cards.iter().zip(b.cards.iter()) {
                     match card_b.cmp(card_a) {
@@ -106,6 +110,16 @@ fn order_hands(hands: &mut Vec<Hand>) {
             other => other,
         }
     });
+
+    // Determine the rank of each hand.
+    let mut rank = 1u32;
+    for i in 0..hands.len() {
+        // if i > 0 && hands[i].kind != hands[i - 1].kind {
+        //     rank += 1;
+        // }
+        hands[i].rank = rank;
+        rank += 1;
+    }
 }
 
 fn main() {
@@ -117,8 +131,8 @@ fn main() {
 
     let mut s = 0u32;
     for i in 0..hands.len() {
-        s += (i as u32 + 1) * hands[i].bet;
-        println!("hand {i}: cards: {:?}, rank: {}", hands[i].cards, hands[i].rank);
+        s += hands[i].rank * hands[i].bet;
+        println!("hand {i}: cards: {:?}, kind: {:?}, rank: {}", hands[i].cards, hands[i].kind, hands[i].rank);
     }
 
     println!("s: {s}")
