@@ -63,22 +63,25 @@ fn order_hands(hands: &mut Vec<Hand>) {
         let mut jokers = 0u32;
         for card in &hand.cards {
             let n = translate_card(*card);
-            if n == 0 {
+            if (n == 0) {
                 jokers += 1;
                 continue;
             }
             cards[n as usize] += 1;
         }
 
-        for i in 0..jokers {
-            for j in 1..MAX_CARDS {
-                if cards[j] != 0 {
-                    cards[j] += 1;
-                    break;
+        // Add jokers
+        for i in 1..MAX_CARDS {
+            if cards[i] == 0 {
+                if jokers == 0 {
+                    continue;
                 }
+                cards[i] += 1;
+                jokers -= 1;
             }
         }
 
+        println!("hand: {:?}", hand.cards);
         println!("hand: {:?}", hand.cards);
         println!("cards: {:?}", cards);
 
