@@ -37,6 +37,18 @@ fn translate_card(val: char) -> u32 {
     }
 }
 
+fn translate_num(val: u32) -> char {
+    match val {
+        0..=8 => (val + 1 + ('0' as u32)) as u8 as char,
+        9 => 'T',
+        10 => 'J',
+        11 => 'Q',
+        12 => 'K',
+        13 => 'A',
+        _ => panic!("invalid card"),
+    }
+}
+
 fn create_hands(data: String) -> Vec<Hand> {
     data
         .lines()
@@ -49,65 +61,64 @@ fn create_hands(data: String) -> Vec<Hand> {
         .collect::<Vec<_>>()
 }
 
+fn replace_card(cards: &mut Vec<char>, repl_card: char, new_card: char) {
+    for card in cards {
+        if *card == repl_card {
+            *card = new_card;
+            break;
+        }
+    }
+}
+
 fn order_hands(hands: &mut Vec<Hand>) {
 
     fn determine_kind(hand: &mut Hand) {
-        if hand.cards.iter().all(|&c| c == 'J') {
-            hand.kind = Kind::FiveKind;
-            return;
-        }
-
         const MAX_CARDS: usize = 14;
 
         let mut cards = [0u32; MAX_CARDS];
-        let mut jokers = 0u32;
         for card in &hand.cards {
             let n = translate_card(*card);
-            if n == 0 {
-                jokers += 1;
-                continue;
-            }
             cards[n as usize] += 1;
         }
-
-        for i in 0..jokers {
-            for j in 1..MAX_CARDS {
-                if cards[j] != 0 {
-                    cards[j] += 1;
-                    break;
-                }
-            }
-        }
-
         println!("hand: {:?}", hand.cards);
         println!("cards: {:?}", cards);
 
-        let mut counts = [0u32; 6];
+        // let mut counts = [0u32; 6];
+        let mut counts: [(u32, Vec<char>); 6] = [
+            (0, vec![]), (0, vec![]),
+            (0, vec![]), (0, vec![]),
+            (0, vec![]), (0, vec![]),
+        ];
+
+        let jokers = cards[0];
+        counts[0].0 = jokers;
+        counts[0].1.push('J');
 
         for i in 1..MAX_CARDS {
             let n = cards[i];
             if n != 0 {
-                counts[n as usize] += 1;
+                counts[n as usize].0 += 1;
+                counts[n as usize].1.push(translate_num(i as u32));
             }
         }
         println!("counts: {:?}", counts);
-        println!();
 
-        if counts[5] == 1 {
+        if counts[5].0 == 1 {
             hand.kind = Kind::FiveKind;
-        } else if counts[4] == 1 {
+        } else if counts[4].0 == 1 {
             hand.kind = Kind::FourKind;
-        } else if counts[3] == 1 && counts[2] == 1 {
+        } else if counts[3].0 == 1 && counts[2].0 == 1 {
             hand.kind = Kind::FullHouse;
-        } else if counts[3] == 1 {
+        } else if counts[3].0 == 1 {
             hand.kind = Kind::ThreeKind;
-        } else if counts[2] == 2 {
+        } else if counts[2].0 == 2 {
             hand.kind = Kind::TwoPair;
-        } else if counts[2] == 1 {
+        } else if counts[2].0 == 1 {
             hand.kind = Kind::OnePair;
         } else {
             hand.kind = Kind::HighCard;
         }
+
     }
 
     for hand in &mut *hands {
